@@ -9,8 +9,8 @@ de standaardnamen; in de YAML aanpasbaar. Alle entiteiten worden in de YAML onde
 | Entiteit | ESPHome-platform | Waarden | Wanneer gepubliceerd |
 |----------|------------------|---------|----------------------|
 | Persoon aanwezig | `binary_sensor`, `device_class: presence` | aan / uit / onbekend | bij elke statuswijziging; onbekend tijdens sensorfout (research R8) |
-| Richting | `text_sensor` | `naderend` / `verwijderend` | bij elke `PersonDetected` |
-| Detectie | `event`, `event_types: [naderend, verwijderend]` | event | bij elke `PersonDetected` (precies één per nadering, FR-008) |
+| Richting | `text_sensor` | `naderend` / `verwijderend` | bij elke `PersonDetected` en `DirectionChanged` |
+| Detectie | `event`, `event_types: [naderend, verwijderend]` | event | bij elke `PersonDetected` (één per aanwezigheid) en bij elke richtingswissel binnen die aanwezigheid (FR-008) |
 
 "Persoon weg" (FR-009) = "Persoon aanwezig" gaat van aan naar uit.
 
@@ -25,7 +25,8 @@ entiteiten opnieuw (FR-016); events uit de onderbreking worden niet nagestuurd.
 | Positie | `sensor` | m, 2 decimalen; leeg (NaN) als er geen actieve zones zijn |
 | Snelheid | `sensor` | m/s, 2 decimalen; negatief = naderend |
 | Afwijzingsreden | `text_sensor` | zie redenen in [diagnostic-log.md](diagnostic-log.md) |
-| Zone 0 … Zone 8 energie | 9× `sensor` | 0–100 (bewegingsenergie per zone, 0,75 m per zone) |
+| Zone 0 … Zone 8 energie | 9× `sensor` | 0–100 (bewegingsenergie per zone, 0,75 m per zone); in de YAML uitgemiddeld over 5 s |
+| Zone 0 … Zone 8 drempel | 9× `sensor` | 0–100+: energie waarboven de zone als beweging telt = max(minimale energie, achtergrond + max(marge, 3 × schommeling)); hele getallen, alleen bij verandering |
 | Reset-oorzaak | `text_sensor` via ESPHome `debug` | tekst (constitutie III) |
 
 ## Configuratie (`number`, `entity_category: config`, `restore_value`, `mode: box`)

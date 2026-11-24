@@ -71,6 +71,9 @@ sensor:
     gate_energy:              # lijst van precies 9, index = zone
       - name: "Zone 0 energie"
       # … t/m Zone 8
+    gate_threshold:           # lijst van precies 9: effectieve drempel per zone
+      - name: "Zone 0 drempel"
+      # … t/m Zone 8
 
 number:
   - platform: door_radar

@@ -41,6 +41,13 @@
 - Q: Kan "persoon aanwezig" bij een storing "niet beschikbaar" worden? → A: Nee; ESPHome kent
   beschikbaarheid alleen per apparaat. Het wordt "onbekend", met "Radar storing" aan (research R8).
 
+### Session 2026-11-24 (na hardwaretest)
+
+- Q: Moet een vertrek ook gemeld worden als de persoon eerst naderde en binnen dezelfde
+  aanwezigheid weer wegloopt (bijv. een bezorger)? → A: Ja. Tijdens een aanwezigheid volgt een
+  richtingsmelding zodra de persoon aantoonbaar de andere kant op loopt; de aanwezigheid zelf
+  blijft één geheel (geen nieuwe "persoon gedetecteerd").
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Naderende persoon wordt betrouwbaar gedetecteerd (Priority: P1)
@@ -110,6 +117,9 @@ gecontroleerd wordt of de gemelde richting overeenkomt met de werkelijke richtin
    loopt, **Then** meldt het systeem "persoon gedetecteerd" met richting "verwijderend".
 2. **Given** een persoon loopt naar de sensor toe, **When** de detectie wordt gemeld, **Then**
    is de gemelde richting "naderend".
+3. **Given** een persoon is als "naderend" gedetecteerd en nog aanwezig, **When** de persoon
+   omdraait en minstens 1 s en 0,6 m aanhoudend van de sensor wegloopt, **Then** meldt het
+   systeem de richting "verwijderend", zonder nieuwe melding "persoon gedetecteerd".
 
 ---
 
@@ -206,8 +216,11 @@ reden.
 - **FR-007**: Het systeem MOET bij een geldige detectie de melding "persoon gedetecteerd"
   geven, met richting (naderend of verwijderend), afstand op het moment van detectie en
   tijdstip.
-- **FR-008**: Het systeem MOET per doorlopende aanwezigheid één detectiemelding geven en MAG
-  NIET herhaald melden zolang de persoon aanwezig blijft.
+- **FR-008**: Het systeem MOET per doorlopende aanwezigheid één detectiemelding "persoon
+  gedetecteerd" geven en MAG die NIET herhalen zolang de persoon aanwezig blijft. Beweegt de
+  persoon tijdens de aanwezigheid aanhoudend in de tegengestelde richting van de laatst gemelde
+  (volgens dezelfde criteria als FR-002 t/m FR-004), dan MOET het systeem een richtingsmelding
+  met de nieuwe richting geven.
 - **FR-009**: Het systeem MOET de melding "persoon weg" geven wanneer na een detectie
   gedurende een instelbare wegtijd (standaard 5 seconden) geen persoon meer wordt waargenomen.
   Een stilstaand doel in de afstandszone waar de persoon het laatst bewoog (of een direct
@@ -244,7 +257,8 @@ reden.
   - **Bediening/automatisering**: persoon aanwezig (aan/uit), richting van de laatste
     detectie (naderend / verwijderend), en een melding per detectie;
   - **Diagnose**: sensorstatus (ok / fout), geschatte positie (m), afgeleide snelheid (m/s),
-    laatste afwijzingsreden, en de bewegingssignaalsterkte per afstandszone (zones 0–8).
+    laatste afwijzingsreden, de bewegingssignaalsterkte per afstandszone (zones 0–8) en de
+    drempel per zone waarboven beweging meetelt.
   Diagnosegegevens MOETEN als diagnose-onderdelen gemarkeerd zijn en hoogstens één keer per
   seconde per waarde worden bijgewerkt, zodat WiFi-verkeer en de Home Assistant-database
   beperkt blijven; aanwezigheid en detectiemeldingen worden direct doorgegeven (SC-007).
@@ -261,7 +275,7 @@ reden.
 - **Bewegingsspoor**: de reeks waarnemingen over tijd; hieruit volgen afgeleide snelheid,
   richting, duur, netto verplaatsing en het verschuiven van bewegingsenergie tussen zones.
 - **Detectiegebeurtenis**: een melding "persoon gedetecteerd" (met richting, afstand,
-  tijdstip) of "persoon weg".
+  tijdstip), een richtingsmelding tijdens een aanwezigheid, of "persoon weg".
 - **Detectiestatus**: de actuele toestand van de detectie: geen persoon, persoon aanwezig of
   sensorfout.
 - **Detectieparameters**: de instelbare drempelwaarden uit FR-011.

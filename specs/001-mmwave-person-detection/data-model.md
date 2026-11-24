@@ -113,7 +113,7 @@ Bijwerken per toestand (aangepast tijdens de implementatie, zie research R5):
 
 | Veld | Type | Beschrijving |
 |------|------|--------------|
-| `kind` | enum `PersonDetected`, `PersonGone`, `SensorFault`, `SensorRecovered` | |
+| `kind` | enum `PersonDetected`, `DirectionChanged`, `PersonGone`, `SensorFault`, `SensorRecovered` | `DirectionChanged`: richtingswissel binnen een aanwezigheid (FR-008) |
 | `direction` | enum `Approaching`, `Receding` | Alleen bij `PersonDetected` |
 | `distanceM` | float | Positie op moment van detectie |
 | `timestampMs` | `uint32_t` | |
@@ -154,4 +154,6 @@ overgangen:
 | `Fault` | `SensorFault` | onbekend (zie research R8) |
 
 In `Present` worden nieuwe bewegingen niet opnieuw als detectie gemeld (FR-008); ze verlengen
-alleen `lastMotionMs`.
+`lastMotionMs`. Een apart spoor (`presentTrack`) beoordeelt ze met dezelfde criteria; is de
+beweging aanhoudend en in de andere richting dan de laatst gemelde, dan volgt een
+`DirectionChanged`-event met de nieuwe richting.

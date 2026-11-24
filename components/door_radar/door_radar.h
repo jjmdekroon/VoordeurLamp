@@ -77,6 +77,9 @@ class DoorRadar : public Component, public uart::UARTDevice {
   void set_gate_energy_sensor(uint8_t gate, sensor::Sensor *s) {
     if (gate < presence::GATE_COUNT) gate_energy_sensors_[gate] = s;
   }
+  void set_gate_threshold_sensor(uint8_t gate, sensor::Sensor *s) {
+    if (gate < presence::GATE_COUNT) gate_threshold_sensors_[gate] = s;
+  }
 #endif
 
   /// Door number::setup() aangeroepen (vóór DoorRadar::setup()).
@@ -152,6 +155,7 @@ class DoorRadar : public Component, public uart::UARTDevice {
   float published_position_{0.0f};
   float published_speed_{0.0f};
   int16_t published_gate_energy_[presence::GATE_COUNT]{-1, -1, -1, -1, -1, -1, -1, -1, -1};
+  int16_t published_gate_threshold_[presence::GATE_COUNT]{-1, -1, -1, -1, -1, -1, -1, -1, -1};
   bool diagnostics_published_{false};
 
 #ifdef USE_BINARY_SENSOR
@@ -169,6 +173,7 @@ class DoorRadar : public Component, public uart::UARTDevice {
   sensor::Sensor *position_sensor_{nullptr};
   sensor::Sensor *speed_sensor_{nullptr};
   sensor::Sensor *gate_energy_sensors_[presence::GATE_COUNT]{};
+  sensor::Sensor *gate_threshold_sensors_[presence::GATE_COUNT]{};
 #endif
 };
 

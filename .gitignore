@@ -5,6 +5,10 @@ secrets.yaml
 # PlatformIO (host tests)
 .pio/
 
+# Opgenomen logs (proefrondes, afstemmen)
+logs/
+*.log
+
 # Python
 .venv/
 venv/

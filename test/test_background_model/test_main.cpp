@@ -1,7 +1,10 @@
 // T027: tests voor het achtergrondmodel (data-model.md Background).
 #include <unity.h>
 
+#include <cmath>
+
 #include "background_model.h"
+#include "presence_detector.h"
 
 using presence::BackgroundModel;
 using presence::GATE_COUNT;
@@ -74,8 +77,28 @@ void test_active_requires_both_minimum_and_background_margin() {
   TEST_ASSERT_TRUE(empty.isActive(3, 21, minEnergy, margin));
 }
 
+// Diagnose "Zone N drempel": max(minimale energie, achtergrond + marge/spreiding).
+void test_detector_gate_threshold() {
+  presence::DetectorConfig cfg;
+  presence::PresenceDetector det(cfg);
+  // Lege achtergrond: drempel = max(minGateEnergy 20, 0 + marge 15) = 20.
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 20.0f, det.gateThreshold(3));
+  // Na een minuut constante energie 50 in alle zones: ~50 + 15 = ~65.
+  ld2410::RadarFrame f;
+  f.type = ld2410::FrameType::Engineering;
+  f.maxMovingGate = ld2410::MAX_GATE_INDEX;
+  for (auto &e : f.movingGateEnergy) e = 50;
+  for (uint32_t t = 0; t <= 120000; t += STEP_MS) {
+    f.timestampMs = t;
+    det.onFrame(f);
+  }
+  TEST_ASSERT_FLOAT_WITHIN(2.0f, 65.0f, det.gateThreshold(3));
+  TEST_ASSERT_TRUE(std::isnan(det.gateThreshold(presence::GATE_COUNT)));
+}
+
 int main(int, char **) {
   UNITY_BEGIN();
+  RUN_TEST(test_detector_gate_threshold);
   RUN_TEST(test_converges_to_constant_energy);
   RUN_TEST(test_hold_freezes_model);
   RUN_TEST(test_large_gap_is_limited);

@@ -34,6 +34,9 @@ class PresenceDetector {
 
   State state() const { return state_; }
   const BackgroundModel &background() const { return background_; }
+  /// Energie waarboven zone `gate` als actief telt: max(minimale energie, achtergrond + max(marge,
+  /// 3 x schommeling)). Voor de diagnose-sensor "Zone N drempel".
+  float gateThreshold(uint8_t gate) const;
   uint32_t droppedEventCount() const { return droppedEvents_; }
   /// true als de constructor een ongeldige configuratie kreeg en standaardwaarden gebruikt.
   bool usedDefaultConfig() const { return usedDefaultConfig_; }
@@ -52,6 +55,9 @@ class PresenceDetector {
   GateAnalysis analyseGates(const ld2410::RadarFrame &frame) const;
   void updateBackground(const ld2410::RadarFrame &frame);
   void handleCandidate(uint32_t nowMs, const GateAnalysis &gates);
+  /// Beoordeel een spoor tegen FR-002..FR-004 (incl. omkering en pauze, die het spoor herstarten).
+  /// Geeft RejectReason::None als de beweging als aanhoudende loopbeweging telt.
+  RejectReason assessTrack(Track &track, uint32_t nowMs, float positionM, bool updateEvaluation);
   void handlePresent(const ld2410::RadarFrame &frame, const GateAnalysis &gates);
   void enterIdle();
   void pushEvent(EventKind kind, uint32_t nowMs, Direction direction = Direction::Unknown, float distanceM = 0.0f);
@@ -74,6 +80,10 @@ class PresenceDetector {
   uint32_t presentLastMotionMs_{0};
   uint32_t presentLastSeenMs_{0};
   float presentPosM_{0.0f};
+  /// Spoor tijdens Present, voor richtingsmeldingen (FR-008).
+  Track presentTrack_{};
+  /// Laatst gemelde richting binnen de huidige aanwezigheid.
+  Direction lastDirection_{Direction::Unknown};
 
   DetectionEvent events_[EVENT_QUEUE_SIZE]{};
   uint8_t eventHead_{0};

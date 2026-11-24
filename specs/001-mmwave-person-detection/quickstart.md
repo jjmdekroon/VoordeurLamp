@@ -61,7 +61,7 @@ een handige bron.
 |---|----------|----------|------|
 | V1 | Loop 40× in normaal tempo over het pad (met bocht) naar de deur | ≥ 38× "Detectie" = `naderend`, binnen 2 s na binnenkomst | US1, SC-001, SC-002 |
 | V2 | Loop door naar de deur na detectie | precies één "Detectie"-event per nadering | FR-008 |
-| V3 | Loop 20× van de deur weg | ≥ 19× `verwijderend` | US3, SC-004 |
+| V3 | Loop 20× van de deur weg: 10× vanuit een leeg gebied (bijv. het huis uit) en 10× als omkeer na een nadering | ≥ 19× `verwijderend` (bij omkeer als `direction_changed`, zonder nieuwe `person_detected`) | US3, SC-004, FR-008 |
 | V4 | Blijf 30 s stilstaan bij de deur na detectie | "Persoon aanwezig" blijft aan; gaat uiterlijk 60 s + wegtijd na laatste beweging uit | FR-009 |
 | V5 | Loop weg uit het gebied | "Persoon aanwezig" ~5 s na verlaten uit | FR-009 |
 | V6 | Winderige dag, niemand op het pad, 24 h | ≤ 1 "Detectie"-event | US2, SC-003 |

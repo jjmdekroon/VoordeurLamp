@@ -132,6 +132,18 @@ sensor:
         filters: *zone_filter
       - name: Zone 8 energie
         filters: *zone_filter
+    # Drempel waarboven een zone als beweging telt (geleerde achtergrond + marge, minimaal de
+    # "Zone N minimale energie"). Verandert langzaam; wordt alleen bij verandering verstuurd.
+    gate_threshold:
+      - name: Zone 0 drempel
+      - name: Zone 1 drempel
+      - name: Zone 2 drempel
+      - name: Zone 3 drempel
+      - name: Zone 4 drempel
+      - name: Zone 5 drempel
+      - name: Zone 6 drempel
+      - name: Zone 7 drempel
+      - name: Zone 8 drempel
 
 # --- Configuratie: drempels instelbaar vanuit Home Assistant (FR-011) ---
 number:

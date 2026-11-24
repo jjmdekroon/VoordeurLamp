@@ -180,6 +180,7 @@ zone-energieën.
 - [ ] T047 Controleer dat de ESPHome-log tijdens normaal gebruik geen waarschuwing "took a long time" voor `door_radar` toont (constitutie I) en dat `esphome compile` geen nieuwe waarschuwingen geeft; noteer RAM- en flashgebruik in `specs/001-mmwave-person-detection/validation-log.md` (constitutie V)
 - [ ] T048 Voer quickstart V11 (WiFi-uitval tijdens nadering, geen herstart) en V14 (stroomuitval) uit en leg de resultaten vast in `specs/001-mmwave-person-detection/validation-log.md`
 - [ ] T049 Start de 7-daagse duurtest V13 (SC-003 en SC-005) en leg aantal valse detecties per dag en eventuele resets vast in `specs/001-mmwave-person-detection/validation-log.md`
+- [X] T051 [US3] Richtingsmelding binnen een aanwezigheid (FR-008, aangepast na hardwaretest 2026-11-24): `DirectionChanged`-event in `components/door_radar/presence_detector.cpp` met apart spoor in `Present`, publicatie op "Richting" en "Detectie" in `components/door_radar/door_radar.cpp`, tests in `test/test_direction/test_main.cpp`
 - [ ] T050 Draai als eindcontrole `pio test -e native`, `esphome config voordeur-radar.yaml` en `esphome compile voordeur-radar.yaml` en loop de afrondingslijst van [quickstart.md](quickstart.md) §6 af
 
 ---

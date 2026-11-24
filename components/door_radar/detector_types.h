@@ -81,6 +81,8 @@ enum class Direction : uint8_t {
 
 enum class EventKind : uint8_t {
   PersonDetected,
+  /// Tijdens een aanwezigheid aanhoudend de andere kant op (FR-008); direction = nieuwe richting.
+  DirectionChanged,
   PersonGone,
   SensorFault,
   SensorRecovered,

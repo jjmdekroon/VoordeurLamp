@@ -20,6 +20,7 @@ DEPENDENCIES = ["door_radar"]
 CONF_POSITION = "position"
 CONF_SPEED = "speed"
 CONF_GATE_ENERGY = "gate_energy"
+CONF_GATE_THRESHOLD = "gate_threshold"
 GATE_COUNT = 9
 
 GATE_ENERGY_SCHEMA = sensor.sensor_schema(
@@ -54,6 +55,15 @@ CONFIG_SCHEMA = cv.Schema(
                 msg=f"gate_energy moet precies {GATE_COUNT} sensoren bevatten (zone 0-8)",
             ),
         ),
+        # Effectieve drempel per zone: max(minimale energie, achtergrond + marge/spreiding).
+        cv.Optional(CONF_GATE_THRESHOLD): cv.All(
+            cv.ensure_list(GATE_ENERGY_SCHEMA),
+            cv.Length(
+                min=GATE_COUNT,
+                max=GATE_COUNT,
+                msg=f"gate_threshold moet precies {GATE_COUNT} sensoren bevatten (zone 0-8)",
+            ),
+        ),
     }
 )
 
@@ -69,3 +79,6 @@ async def to_code(config):
     for gate, conf in enumerate(config.get(CONF_GATE_ENERGY, [])):
         sens = await sensor.new_sensor(conf)
         cg.add(hub.set_gate_energy_sensor(gate, sens))
+    for gate, conf in enumerate(config.get(CONF_GATE_THRESHOLD, [])):
+        sens = await sensor.new_sensor(conf)
+        cg.add(hub.set_gate_threshold_sensor(gate, sens))

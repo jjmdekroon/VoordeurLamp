@@ -44,8 +44,10 @@ bool validate(const DetectorConfig& config, ConfigError* error);
    `tick(nowMs)` (deterministisch testbaar).
 2. **Events**: vaste wachtrij van 8; bij overloop wordt het oudste weggegooid en een teller
    verhoogd. De lijm MOET `pollEvent` elke loop leegmaken.
-3. **Volgorde**: na `PersonDetected` komt precies één `PersonGone` of `SensorFault` voordat er
-   een nieuw `PersonDetected` kan komen (FR-008).
+3. **Volgorde**: na `PersonDetected` volgen nul of meer `DirectionChanged`-events (elk met de
+   nieuwe richting, afwisselend), en daarna precies één `PersonGone` of `SensorFault` voordat er
+   een nieuw `PersonDetected` kan komen (FR-008). `DirectionChanged` komt alleen bij aanhoudende
+   beweging in de andere richting dan de laatst gemelde, met dezelfde criteria als een detectie.
 4. **Opstarten**: binnen `startupMs` na constructie of na `SensorRecovered` geen
    `PersonDetected` (FR-014).
 5. **Sensorfout**: na `sensorTimeoutMs` zonder frame → status `SensorFault` + één

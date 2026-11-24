@@ -412,6 +412,17 @@ void DoorRadar::handle_events_() {
 #endif
         break;
       }
+      case presence::EventKind::DirectionChanged: {
+        const char *direction = presence::toString(event.direction);
+        ESP_LOGI(TAG, "direction_changed dir=%s dist_m=%.2f", direction, event.distanceM);
+#ifdef USE_TEXT_SENSOR
+        if (direction_text_sensor_ != nullptr) direction_text_sensor_->publish_state(direction);
+#endif
+#ifdef USE_EVENT
+        if (detection_event_ != nullptr) detection_event_->trigger(direction);
+#endif
+        break;
+      }
       case presence::EventKind::PersonGone:
         ESP_LOGI(TAG, "person_gone");
         break;
@@ -477,6 +488,16 @@ void DoorRadar::publish_diagnostics_() {
     if (energy != published_gate_energy_[g]) {
       s->publish_state(energy);
       published_gate_energy_[g] = energy;
+    }
+  }
+  for (uint8_t g = 0; g < presence::GATE_COUNT; g++) {
+    sensor::Sensor *s = gate_threshold_sensors_[g];
+    if (s == nullptr) continue;
+    // Afgerond op hele waarden: de drempel verandert langzaam, zo blijft het verkeer laag.
+    const int16_t threshold = static_cast<int16_t>(std::lround(detector_.gateThreshold(g)));
+    if (threshold != published_gate_threshold_[g]) {
+      s->publish_state(threshold);
+      published_gate_threshold_[g] = threshold;
     }
   }
 #endif

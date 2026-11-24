@@ -39,6 +39,13 @@ int PresenceDetector::gateIndexForDistanceM(float distanceM) {
   return static_cast<int>(std::lround(distanceM / GATE_SIZE_M));
 }
 
+float PresenceDetector::gateThreshold(uint8_t gate) const {
+  if (gate >= GATE_COUNT) return NAN;
+  const float background = background_.threshold(gate, config_.backgroundMargin);
+  const float minimum = static_cast<float>(config_.minGateEnergy[gate]);
+  return background > minimum ? background : minimum;
+}
+
 bool PresenceDetector::isInRange(uint8_t gate) const {
   const float d = gateDistanceM(gate);
   return d >= config_.minRangeM - RANGE_EPSILON_M && d <= config_.maxRangeM + RANGE_EPSILON_M;
@@ -85,6 +92,8 @@ bool PresenceDetector::pollEvent(DetectionEvent &out) {
 void PresenceDetector::enterIdle() {
   state_ = State::Idle;
   track_.reset();
+  presentTrack_.reset();
+  lastDirection_ = Direction::Unknown;
 }
 
 void PresenceDetector::tick(uint32_t nowMs) {
@@ -97,6 +106,8 @@ void PresenceDetector::checkTimeouts(uint32_t nowMs) {
     // FR-013: geen PersonGone; aanwezigheid vervalt via de foutstatus.
     state_ = State::Fault;
     track_.reset();
+    presentTrack_.reset();
+    lastDirection_ = Direction::Unknown;
     pushEvent(EventKind::SensorFault, nowMs);
     return;
   }
@@ -246,52 +257,51 @@ void PresenceDetector::onFrame(const ld2410::RadarFrame &frame) {
   checkTimeouts(nowMs);
 }
 
-void PresenceDetector::handleCandidate(uint32_t nowMs, const GateAnalysis &gates) {
+RejectReason PresenceDetector::assessTrack(Track &track, uint32_t nowMs, float positionM, bool updateEvaluation) {
   // Omkering of te lange pauze: spoor opnieuw beginnen vanaf deze positie (FR-002, FR-005).
-  if (track_.reversed()) {
-    evaluation_.reason = RejectReason::DirectionReversal;
-    track_.start(nowMs, gates.positionM);
-    return;
+  if (track.reversed()) {
+    track.start(nowMs, positionM);
+    return RejectReason::DirectionReversal;
   }
-  if (track_.isStale(nowMs, config_.maxPauseMs)) {
-    evaluation_.reason = RejectReason::NetDisplacementTooSmall;
-    track_.start(nowMs, gates.positionM);
-    return;
+  if (track.isStale(nowMs, config_.maxPauseMs)) {
+    track.start(nowMs, positionM);
+    return RejectReason::NetDisplacementTooSmall;
   }
 
-  const uint32_t duration = track_.durationMs();
-  const float net = track_.netDisplacementM();
-  const float speed = track_.speedMps(config_.evaluationWindowMs);
-  evaluation_.durationMs = duration;
-  evaluation_.netDisplacementM = net;
-  evaluation_.speedMps = speed;
+  const uint32_t duration = track.durationMs();
+  const float net = track.netDisplacementM();
+  const float speed = track.speedMps(config_.evaluationWindowMs);
+  if (updateEvaluation) {
+    evaluation_.durationMs = duration;
+    evaluation_.netDisplacementM = net;
+    evaluation_.speedMps = speed;
+  }
 
   // "Aanhoudend" (FR-002): genoeg meetpunten en een minimale dichtheid. Een persoon geeft in
   // vrijwel elk frame beweging; losse pieken (regen, insecten) niet.
-  const bool sparse = track_.totalSamples() < MIN_TRACK_SAMPLES ||
-                      track_.totalSamples() * 1000u < MIN_SAMPLE_RATE_HZ * duration;
-  if (duration < config_.minDurationMs || sparse) {
-    evaluation_.reason = RejectReason::TooShort;
-    return;
-  }
-  if (std::fabs(net) < config_.minNetDisplacementM) {
-    evaluation_.reason = RejectReason::NetDisplacementTooSmall;
-    return;
-  }
+  const bool sparse = track.totalSamples() < MIN_TRACK_SAMPLES ||
+                      track.totalSamples() * 1000u < MIN_SAMPLE_RATE_HZ * duration;
+  if (duration < config_.minDurationMs || sparse) return RejectReason::TooShort;
+  if (std::fabs(net) < config_.minNetDisplacementM) return RejectReason::NetDisplacementTooSmall;
   const float absSpeed = std::fabs(speed);
-  if (absSpeed < config_.minSpeedMps || absSpeed > config_.maxSpeedMps) {
-    evaluation_.reason = RejectReason::SpeedOutOfRange;
-    return;
-  }
+  if (absSpeed < config_.minSpeedMps || absSpeed > config_.maxSpeedMps) return RejectReason::SpeedOutOfRange;
+  return RejectReason::None;
+}
+
+void PresenceDetector::handleCandidate(uint32_t nowMs, const GateAnalysis &gates) {
+  const RejectReason reason = assessTrack(track_, nowMs, gates.positionM, true);
+  evaluation_.reason = reason;
+  if (reason != RejectReason::None) return;
 
   // Geaccepteerd: precies één PersonDetected per aanwezigheid (FR-007, FR-008).
-  const Direction direction = net < 0.0f ? Direction::Approaching : Direction::Receding;
+  const Direction direction = track_.netDisplacementM() < 0.0f ? Direction::Approaching : Direction::Receding;
   evaluation_.accepted = true;
-  evaluation_.reason = RejectReason::None;
   state_ = State::Present;
   presentLastMotionMs_ = nowMs;
   presentLastSeenMs_ = nowMs;
   presentPosM_ = gates.positionM;
+  lastDirection_ = direction;
+  presentTrack_.reset();
   pushEvent(EventKind::PersonDetected, nowMs, direction, gates.positionM);
   track_.reset();
 }
@@ -302,6 +312,21 @@ void PresenceDetector::handlePresent(const ld2410::RadarFrame &frame, const Gate
     presentLastMotionMs_ = nowMs;
     presentLastSeenMs_ = nowMs;
     presentPosM_ = gates.positionM;
+    // Richtingsmelding (FR-008): aanhoudende beweging in de andere richting dan de laatst gemelde.
+    if (presentTrack_.empty()) {
+      presentTrack_.start(nowMs, gates.positionM);
+    } else {
+      presentTrack_.add(nowMs, gates.positionM, config_.reversalHysteresisM);
+    }
+    if (assessTrack(presentTrack_, nowMs, gates.positionM, false) == RejectReason::None) {
+      const Direction direction =
+          presentTrack_.netDisplacementM() < 0.0f ? Direction::Approaching : Direction::Receding;
+      if (direction != lastDirection_) {
+        lastDirection_ = direction;
+        pushEvent(EventKind::DirectionChanged, nowMs, direction, gates.positionM);
+      }
+      presentTrack_.start(nowMs, gates.positionM);
+    }
     return;
   }
   // Begrensd vasthouden met een stilstaand doel in de buurt van de laatste positie (FR-009).
