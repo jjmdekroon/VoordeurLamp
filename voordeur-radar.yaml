@@ -108,16 +108,30 @@ sensor:
       name: Positie
     speed:
       name: Snelheid
+    # Uitgemiddeld voor een rustigere grafiek in Home Assistant; de detectie zelf gebruikt de
+    # ruwe metingen. Voor afstemmen kan "max" (hoogste waarde per periode) handiger zijn:
+    #   filters: &zone_filter
+    #     - max: { window_size: 5, send_every: 5 }
     gate_energy:
       - name: Zone 0 energie
+        filters: &zone_filter
+          - throttle_average: 5s
       - name: Zone 1 energie
+        filters: *zone_filter
       - name: Zone 2 energie
+        filters: *zone_filter
       - name: Zone 3 energie
+        filters: *zone_filter
       - name: Zone 4 energie
+        filters: *zone_filter
       - name: Zone 5 energie
+        filters: *zone_filter
       - name: Zone 6 energie
+        filters: *zone_filter
       - name: Zone 7 energie
+        filters: *zone_filter
       - name: Zone 8 energie
+        filters: *zone_filter
 
 # --- Configuratie: drempels instelbaar vanuit Home Assistant (FR-011) ---
 number:
