@@ -13,9 +13,11 @@ Bronnen: `Radar/24GHz_mmWave_for_XIAO-Datasheet-V1.00.pdf`,
 - **Rationale**: dit is het bord van de gebruiker; vrije UART voor 256000 baud, logging via
   native USB, ruim voldoende rekenkracht en RAM.
 - **Pinnen**: de XIAO heeft 14 headerpinnen met bordnamen D0–D10; ESPHome gebruikt de
-  chipnamen. De radar is via de gestapelde header verbonden met D6 = GPIO43 (XIAO-TX) en
-  D7 = GPIO44 (XIAO-RX); als `substitutions` in de YAML (constitutie II). Er is geen extra
-  bedrading nodig.
+  chipnamen. De radar-UART is via de gestapelde header verbonden met D2 = GPIO3 en D3 = GPIO4
+  (schema J1: pin 10 "TX" en pin 11 "RX" liggen op de XIAO-posities D2 en D3; D6 en D7 zijn op
+  de radarmodule "NC", niet aangesloten). Als `substitutions` in de YAML (constitutie II). Er is
+  geen extra bedrading nodig. *Correctie 2026-11-24*: eerder stond hier D6/D7; dat was een
+  verkeerde lezing van het schema en gaf bij de bring-up `sensor_timeout` in beide richtingen.
 - **Niet gebruiken**: de module verbindt zijn eigen aanwezigheidsuitgang (OUT) met D10 =
   GPIO9. Deze feature gebruikt die pin niet; D10 MAG niet als uitgang worden geconfigureerd
   (de module stuurt de lijn aan).
@@ -58,13 +60,14 @@ Bronnen: `Radar/24GHz_mmWave_for_XIAO-Datasheet-V1.00.pdf`,
 ## R4. UART-instellingen en engineering-modus
 
 - **Decision**: `uart:` op 256000 baud, 8N1, `rx_pin`/`tx_pin` via substitutions (standaard
-  `rx_pin: GPIO43`, `tx_pin: GPIO44`), `rx_buffer_size: 1024`. Na opstarten en na elk herstel
+  `rx_pin: GPIO3`, `tx_pin: GPIO4`), `rx_buffer_size: 1024`. Na opstarten en na elk herstel
   van een sensorfout stuurt de component *enable configuration* (0x00FF) → *enable engineering
   mode* (0x0062) → *end configuration* (0x00FE), elk met ACK-timeout 500 ms, max. 3 pogingen,
   daarna backoff (1, 2, 4 … max. 30 s).
-- **Rationale**: het schema legt de module-TX (net `TXC`) op headerpositie D6; de ESP moet dus
-  op D6 (GPIO43) ontvangen. Omdat dit uit het schema niet met zekerheid volgt, is het een
-  substitution die bij bring-up wordt gecontroleerd. Engineering-modus gaat verloren bij
+- **Rationale**: het schema legt de module-TX (net `TXC`) op headerpositie D2; de ESP moet dus
+  op D2 (GPIO3) ontvangen. GPIO3 is een strapping-pin, maar alleen relevant als de eFuse
+  `STRAP_JTAG_SEL` is gezet (standaard niet); de ESPHome-waarschuwing is daarom uitgezet. De
+  richting blijft een substitution die bij bring-up wordt gecontroleerd. Engineering-modus gaat verloren bij
   stroomverlies (user manual §2.2.5) en moet dus steeds opnieuw aan. De grotere RX-buffer
   voorkomt verlies van bytes als de hoofdlus even bezet is (WiFi, API).
 - **Alternatives considered**: baudrate van de module verlagen (onnodig risico).
@@ -195,4 +198,4 @@ Bronnen: `Radar/24GHz_mmWave_for_XIAO-Datasheet-V1.00.pdf`,
 
 Geen NEEDS CLARIFICATION. Te verifiëren tijdens implementatie/bring-up (geen ontwerpkeuze):
 exacte ESPHome-versie bij opzet (R2), `invalidate_state()` in die versie (R8), UART-richting
-D6/D7 (R4), zone-resolutie 0,75 m en werkelijke framesnelheid.
+D2/D3 (R4), zone-resolutie 0,75 m en werkelijke framesnelheid.

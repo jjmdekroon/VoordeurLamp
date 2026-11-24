@@ -34,7 +34,7 @@ Geen externe bibliotheken; de ingebouwde `ld2410`-component wordt bewust niet ge
 handmatige hardware- en Home Assistant-tests volgens [quickstart.md](quickstart.md)
 
 **Target Platform**: Seeed XIAO ESP32-S3 (`seeed_xiao_esp32s3`) + Seeed 24GHz mmWave for XIAO
-(HLK-LD2410B), UART 256000 baud op GPIO43/GPIO44 (XIAO D6/D7); Home Assistant via native API
+(HLK-LD2410B), UART 256000 baud op GPIO3/GPIO4 (XIAO D2/D3); Home Assistant via native API
 
 **Project Type**: embedded firmware als ESPHome-apparaat met één external component
 

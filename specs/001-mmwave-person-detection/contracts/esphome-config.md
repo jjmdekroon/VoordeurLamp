@@ -14,8 +14,8 @@ external_components:
 
 uart:
   id: radar_uart
-  rx_pin: ${radar_rx_pin}        # standaard GPIO43 (XIAO D6), te verifiëren bij bring-up
-  tx_pin: ${radar_tx_pin}        # standaard GPIO44 (XIAO D7)
+  rx_pin: ${radar_rx_pin}        # standaard GPIO3 (XIAO D2) <- TX van de radar
+  tx_pin: ${radar_tx_pin}        # standaard GPIO4 (XIAO D3) -> RX van de radar
   baud_rate: 256000
   rx_buffer_size: 1024
 

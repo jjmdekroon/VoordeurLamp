@@ -46,7 +46,7 @@ de buildoutput toont RAM- en flashgebruik (noteren, constitutie V).
 | Controle | Verwacht ([logformaat](contracts/diagnostic-log.md)) |
 |----------|------------------------------------------------------|
 | Reset-oorzaak zichtbaar | regel van de `debug`-component bij opstarten |
-| UART-richting D6/D7 klopt (GPIO43/GPIO44, via de gestapelde header) | `engineering_mode ok`; zo niet (`sensor_timeout`), `radar_rx_pin`/`radar_tx_pin` in de substitutions omwisselen; geen bedrading nodig |
+| UART-richting D2/D3 klopt (GPIO3/GPIO4, via de gestapelde header) | `engineering_mode ok`; zo niet (`sensor_timeout`), `radar_rx_pin`/`radar_tx_pin` in de substitutions omwisselen; geen bedrading nodig |
 | Zone-resolutie 0,75 m | met `logger: level: DEBUG` en een persoon op ~3 m is de actieve zone ≈ 4 |
 | Framesnelheid | noteer frames/s (verwacht 10–20) |
 | Apparaat in Home Assistant | alle entiteiten uit [contracts/ha-entities.md](contracts/ha-entities.md) zichtbaar; diagnose- en configuratie-entiteiten onder de juiste categorie |

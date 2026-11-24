@@ -14,7 +14,7 @@ de voordeur lopen (of ervan weg), en bewegende begroeiing in de wind negeert.
 | Microcontroller | Seeed Studio XIAO ESP32-S3 |
 | Radar | Seeed Studio 24GHz mmWave for XIAO (HLK-LD2410B), gestapeld via de header |
 
-De radar praat via UART (256000 baud) over XIAO **D6 (GPIO43)** en **D7 (GPIO44)**; er is geen extra
+De radar praat via UART (256000 baud) over XIAO **D2 (GPIO3, ontvangen)** en **D3 (GPIO4, zenden)**; er is geen extra
 bedrading nodig. Krijg je bij het opstarten `sensor_timeout` in de log, wissel dan `radar_rx_pin` en
 `radar_tx_pin` om in de `substitutions` van [`voordeur-radar.yaml`](voordeur-radar.yaml).
 XIAO **D10 (GPIO9)** is de OUT-pin van de radar: niet als uitgang gebruiken.

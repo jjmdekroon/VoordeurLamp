@@ -5,9 +5,10 @@
 substitutions:
   device_name: voordeur-radar
   friendly_name: Voordeur radar
-  # De radar zit via de header op XIAO D6/D7. Bij "sensor_timeout" in de log: omwisselen.
-  radar_rx_pin: GPIO43   # XIAO D6
-  radar_tx_pin: GPIO44   # XIAO D7
+  # De radar-UART zit via de header op XIAO D2/D3 (schema: J1 pin 10 "TX", pin 11 "RX";
+  # D6/D7 zijn op de radarmodule niet aangesloten). Bij "sensor_timeout": omwisselen.
+  radar_rx_pin: GPIO3    # XIAO D2 <- TX van de radar
+  radar_tx_pin: GPIO4    # XIAO D3 -> RX van de radar
   # XIAO D10 (GPIO9) is de OUT-pin van de radar: niet gebruiken als uitgang.
 
 esphome:
@@ -56,7 +57,11 @@ external_components:
 
 uart:
   id: radar_uart
-  rx_pin: ${radar_rx_pin}
+  rx_pin:
+    number: ${radar_rx_pin}
+    # GPIO3 is een strapping-pin (JTAG-bronkeuze), maar alleen als de eFuse STRAP_JTAG_SEL is
+    # gezet; standaard niet. Seeed gebruikt XIAO D2 zo voor deze radar.
+    ignore_strapping_warning: true
   tx_pin: ${radar_tx_pin}
   baud_rate: 256000
   rx_buffer_size: 1024
